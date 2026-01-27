@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCX Reducer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            background: #f0f2ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e8ebff;
+            border-color: #764ba2;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 12px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .controls {
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-info {
+            background: #f8f9ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-name {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .file-details {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-process {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-process:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-process:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚴 TCX Reducer</h1>
+        <p class="subtitle">Reduce GPS trackpoint data to shrink file size</p>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Click or Drag & Drop</div>
+            <div class="upload-hint">Select TCX file (max 10MB)</div>
+            <input type="file" id="fileInput" accept=".tcx,application/xml,text/xml,*/*">
+        </div>
+
+        <div class="file-info" id="fileInfo">
+            <div class="file-name" id="fileName"></div>
+            <div class="file-details" id="fileDetails"></div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="skipCount">Skip Count (Records to Skip)</label>
+                <input type="number" id="skipCount" min="1" max="100" value="1" 
+                       placeholder="e.g., 2 (keep 1 out of every 2 records)">
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn-process" id="processBtn" disabled>Reduce & Save</button>
+            <button class="btn-clear" id="clearBtn">Clear</button>
+        </div>
+
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let originalRecordCount = 0;
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileDetails = document.getElementById('fileDetails');
+        const skipCount = document.getElementById('skipCount');
+        const processBtn = document.getElementById('processBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const status = document.getElementById('status');
+
+        // HTML escape function
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') {
+                return '';
+            }
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#x27;");
+        }
+
+        // Filename validation
+        function validateFileName(name) {
+            if (!name || typeof name !== 'string') {
+                return false;
+            }
+            // Basic filename validation (path traversal protection)
+            if (name.includes('..') || name.includes('/') || name.includes('\\')) {
+                return false;
+            }
+            // Length limit
+            if (name.length > 255) {
+                return false;
+            }
+            // TCX extension check
+            if (!name.toLowerCase().endsWith('.tcx')) {
+                return false;
+            }
+            return true;
+        }
+
+        // Numeric input validation
+        function validateSkipCount(value) {
+            const num = parseInt(value, 10);
+            if (isNaN(num) || num < 1 || num > 100) {
+                return false;
+            }
+            return true;
+        }
+
+        // Status display
+        function showStatus(message, type = 'info') {
+            status.textContent = escapeHtml(message);
+            status.className = `status show ${type}`;
+        }
+
+        function hideStatus() {
+            status.className = 'status';
+        }
+
+        // Click to select file
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Drag & Drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            hideStatus();
+
+            // Filename validation
+            if (!validateFileName(file.name)) {
+                showStatus('Invalid filename. Please select a TCX file.', 'error');
+                return;
+            }
+
+            // File size validation (10MB limit)
+            const maxSize = 10 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showStatus('File size too large. Please select a file under 10MB.', 'error');
+                return;
+            }
+
+            // File type validation
+            const validTypes = ['text/xml', 'application/xml', 'text/plain', ''];
+            if (!validTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.tcx')) {
+                showStatus('Please select a TCX file.', 'error');
+                return;
+            }
+
+            selectedFile = file;
+            
+            // Display file information
+            fileName.textContent = escapeHtml(file.name);
+            const sizeKB = (file.size / 1024).toFixed(2);
+            fileDetails.textContent = `Size: ${sizeKB} KB`;
+            fileInfo.classList.add('show');
+            
+            processBtn.disabled = false;
+            showStatus('Loading file...', 'info');
+
+            // Validate file content
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const content = e.target.result;
+                    
+                    // Validate as XML
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(content, 'text/xml');
+                    
+                    // Check for parse errors
+                    const parserError = xmlDoc.querySelector('parsererror');
+                    if (parserError) {
+                        throw new Error('Failed to parse XML');
+                    }
+
+                    // Check TCX file structure
+                    const root = xmlDoc.documentElement;
+                    if (!root || root.tagName !== 'TrainingCenterDatabase') {
+                        throw new Error('Not a valid TCX file');
+                    }
+
+                    // Count Trackpoints
+                    const trackpoints = xmlDoc.querySelectorAll('Trackpoint');
+                    originalRecordCount = trackpoints.length;
+
+                    if (originalRecordCount === 0) {
+                        throw new Error('No Trackpoints found');
+                    }
+
+                    fileDetails.textContent = `Size: ${sizeKB} KB | Records: ${originalRecordCount}`;
+                    showStatus(`File loaded (${originalRecordCount} records)`, 'success');
+
+                } catch (error) {
+                    showStatus(`Error: ${escapeHtml(error.message)}`, 'error');
+                    processBtn.disabled = true;
+                }
+            };
+            reader.onerror = () => {
+                showStatus('Failed to load file', 'error');
+                processBtn.disabled = true;
+            };
+            reader.readAsText(file);
+        }
+
+        processBtn.addEventListener('click', () => {
+            if (!selectedFile) {
+                showStatus('Please select a file', 'error');
+                return;
+            }
+
+            const skip = skipCount.value;
+            if (!validateSkipCount(skip)) {
+                showStatus('Skip count must be between 1 and 100', 'error');
+                return;
+            }
+
+            showStatus('Processing...', 'info');
+            processBtn.disabled = true;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const content = e.target.result;
+                    const reduced = reduceTCXFile(content, parseInt(skip, 10));
+                    downloadFile(reduced, selectedFile.name);
+                } catch (error) {
+                    showStatus(`Error: ${escapeHtml(error.message)}`, 'error');
+                    processBtn.disabled = false;
+                }
+            };
+            reader.onerror = () => {
+                showStatus('Failed to load file', 'error');
+                processBtn.disabled = false;
+            };
+            reader.readAsText(selectedFile);
+        });
+
+        clearBtn.addEventListener('click', () => {
+            selectedFile = null;
+            originalRecordCount = 0;
+            fileInput.value = '';
+            fileInfo.classList.remove('show');
+            processBtn.disabled = true;
+            hideStatus();
+        });
+
+        function reduceTCXFile(xmlContent, skipCount) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
+
+            // Check for parse errors
+            const parserError = xmlDoc.querySelector('parsererror');
+            if (parserError) {
+                throw new Error('Failed to parse XML');
+            }
+
+            // Get all Trackpoints
+            const trackpoints = xmlDoc.querySelectorAll('Trackpoint');
+            
+            if (trackpoints.length === 0) {
+                throw new Error('No Trackpoints found');
+            }
+
+            let keptCount = 0;
+            let removedCount = 0;
+
+            // Reduction process (keep 1 out of every skipCount records)
+            trackpoints.forEach((tp, index) => {
+                if (index % (skipCount + 1) !== 0) {
+                    // Remove this Trackpoint
+                    tp.remove();
+                    removedCount++;
+                } else {
+                    keptCount++;
+                }
+            });
+
+            // Convert XML to string
+            const serializer = new XMLSerializer();
+            const result = serializer.serializeToString(xmlDoc);
+
+            showStatus(`Complete: ${keptCount} records kept, ${removedCount} records removed`, 'success');
+            processBtn.disabled = false;
+
+            return result;
+        }
+
+        function downloadFile(content, originalName) {
+            // Generate filename (security measures applied)
+            const nameWithoutExt = originalName.replace(/\.tcx$/i, '');
+            // Remove dangerous characters only (preserve Unicode)
+            const safeName = nameWithoutExt.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_');
+            const newFileName = `${safeName}_reduced.tcx`;
+
+            // Create Blob and download
+            const blob = new Blob([content], { type: 'application/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = newFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Input validation (only when focus is lost)
+        skipCount.addEventListener('blur', (e) => {
+            const value = parseInt(e.target.value, 10);
+            if (isNaN(value) || value < 1) {
+                e.target.value = 1;
+            } else if (value > 100) {
+                e.target.value = 100;
+            }
+        });
+    </script>
+</body>
+</html>
