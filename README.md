@@ -6,7 +6,7 @@ A web application for reducing TCX file size by thinning out GPS trackpoints.
 
 This tool reduces TCX (Training Center XML) file size by skipping a specified number of trackpoints. It's useful when you need to reduce the file size of detailed track data exported from GPS devices.
 
-**Live Demo**: [https://tcx-reducer.pages.dev](https://tcx-reducer.pages.dev)
+**Live Demo**: [https://tcx-reducer.fwa.workers.dev/](https://tcx-reducer.fwa.workers.dev/)
 
 ## Features
 
@@ -21,7 +21,7 @@ This tool reduces TCX (Training Center XML) file size by skipping a specified nu
 
 ### Online (Recommended)
 
-Visit the deployed application at: https://tcx-reducer.pages.dev
+Visit the deployed application at: https://tcx-reducer.fwa.workers.dev/
 
 ### Local Development
 
