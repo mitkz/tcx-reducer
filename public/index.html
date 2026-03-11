@@ -206,6 +206,43 @@
             color: #0c5460;
         }
 
+        .format-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .format-option {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            background: white;
+        }
+
+        .format-option:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .format-option input[type="radio"] {
+            display: none;
+        }
+
+        .format-option.selected {
+            border-color: #667eea;
+            background: #f0f2ff;
+            color: #667eea;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 30px 20px;
@@ -216,6 +253,10 @@
             }
 
             .buttons {
+                flex-direction: column;
+            }
+
+            .format-group {
                 flex-direction: column;
             }
         }
@@ -244,6 +285,19 @@
                 <input type="number" id="skipCount" min="1" max="100" value="1" 
                        placeholder="e.g., 2 (keep 1 out of every 2 records)">
             </div>
+            <div class="control-group">
+                <label>Output Format</label>
+                <div class="format-group">
+                    <label class="format-option selected" id="formatTcxLabel">
+                        <input type="radio" name="outputFormat" id="formatTcx" value="tcx" checked>
+                        📄 Reduced TCX
+                    </label>
+                    <label class="format-option" id="formatCsvLabel">
+                        <input type="radio" name="outputFormat" id="formatCsv" value="csv">
+                        📊 CSV (for LLM)
+                    </label>
+                </div>
+            </div>
         </div>
 
         <div class="buttons">
@@ -267,6 +321,18 @@
         const processBtn = document.getElementById('processBtn');
         const clearBtn = document.getElementById('clearBtn');
         const status = document.getElementById('status');
+        const formatTcx = document.getElementById('formatTcx');
+        const formatCsv = document.getElementById('formatCsv');
+        const formatTcxLabel = document.getElementById('formatTcxLabel');
+        const formatCsvLabel = document.getElementById('formatCsvLabel');
+
+        // Format toggle visual feedback
+        [formatTcx, formatCsv].forEach(radio => {
+            radio.addEventListener('change', () => {
+                formatTcxLabel.classList.toggle('selected', formatTcx.checked);
+                formatCsvLabel.classList.toggle('selected', formatCsv.checked);
+            });
+        });
 
         // HTML escape function
         function escapeHtml(unsafe) {
@@ -442,6 +508,8 @@
                 return;
             }
 
+            const outputFormat = document.querySelector('input[name="outputFormat"]:checked').value;
+
             showStatus('Processing...', 'info');
             processBtn.disabled = true;
 
@@ -449,8 +517,13 @@
             reader.onload = (e) => {
                 try {
                     const content = e.target.result;
-                    const reduced = reduceTCXFile(content, parseInt(skip, 10));
-                    downloadFile(reduced, selectedFile.name);
+                    if (outputFormat === 'csv') {
+                        const csv = convertToCSV(content, parseInt(skip, 10));
+                        downloadFile(csv, selectedFile.name, 'csv');
+                    } else {
+                        const reduced = reduceTCXFile(content, parseInt(skip, 10));
+                        downloadFile(reduced, selectedFile.name, 'tcx');
+                    }
                 } catch (error) {
                     showStatus(`Error: ${escapeHtml(error.message)}`, 'error');
                     processBtn.disabled = false;
@@ -471,6 +544,61 @@
             processBtn.disabled = true;
             hideStatus();
         });
+
+        function convertToCSV(xmlContent, skipCount) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
+
+            // Check for parse errors
+            const parserError = xmlDoc.querySelector('parsererror');
+            if (parserError) {
+                throw new Error('Failed to parse XML');
+            }
+
+            // Get all Trackpoints
+            const trackpoints = xmlDoc.querySelectorAll('Trackpoint');
+
+            if (trackpoints.length === 0) {
+                throw new Error('No Trackpoints found');
+            }
+
+            const rows = [];
+            rows.push('Time,Latitude,Longitude,AltitudeMeters,DistanceMeters,HeartRateBpm');
+
+            let keptCount = 0;
+            let removedCount = 0;
+
+            trackpoints.forEach((tp, index) => {
+                if (index % (skipCount + 1) !== 0) {
+                    removedCount++;
+                    return;
+                }
+
+                const timeEl = tp.querySelector('Time');
+                const latEl = tp.querySelector('Position > LatitudeDegrees');
+                const lonEl = tp.querySelector('Position > LongitudeDegrees');
+                const altEl = tp.querySelector('AltitudeMeters');
+                const distEl = tp.querySelector('DistanceMeters');
+                const hrEl = tp.querySelector('HeartRateBpm > Value');
+
+                const time = timeEl ? timeEl.textContent.trim() : '';
+                const lat = latEl ? latEl.textContent.trim() : '';
+                const lon = lonEl ? lonEl.textContent.trim() : '';
+                const alt = altEl ? altEl.textContent.trim() : '';
+                const dist = distEl ? distEl.textContent.trim() : '';
+                const hr = hrEl ? hrEl.textContent.trim() : '';
+
+                // Escape CSV fields per RFC 4180: quote fields containing comma, quote, newline, or CR
+                const escape = v => (v.includes(',') || v.includes('"') || v.includes('\n') || v.includes('\r')) ? `"${v.replace(/"/g, '""')}"` : v;
+                rows.push([time, lat, lon, alt, dist, hr].map(escape).join(','));
+                keptCount++;
+            });
+
+            showStatus(`Complete: ${keptCount} records kept, ${removedCount} records removed`, 'success');
+            processBtn.disabled = false;
+
+            return rows.join('\n');
+        }
 
         function reduceTCXFile(xmlContent, skipCount) {
             const parser = new DOMParser();
@@ -513,15 +641,23 @@
             return result;
         }
 
-        function downloadFile(content, originalName) {
+        function downloadFile(content, originalName, format) {
             // Generate filename (security measures applied)
             const nameWithoutExt = originalName.replace(/\.tcx$/i, '');
             // Remove dangerous characters only (preserve Unicode)
             const safeName = nameWithoutExt.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_');
-            const newFileName = `${safeName}_reduced.tcx`;
+
+            let newFileName, mimeType;
+            if (format === 'csv') {
+                newFileName = `${safeName}_reduced.csv`;
+                mimeType = 'text/csv';
+            } else {
+                newFileName = `${safeName}_reduced.tcx`;
+                mimeType = 'application/xml';
+            }
 
             // Create Blob and download
-            const blob = new Blob([content], { type: 'application/xml' });
+            const blob = new Blob([content], { type: mimeType });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
