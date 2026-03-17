@@ -282,18 +282,18 @@
         <div class="controls">
             <div class="control-group">
                 <label for="skipCount">Skip Count (Records to Skip)</label>
-                <input type="number" id="skipCount" min="1" max="100" value="1" 
+                <input type="number" id="skipCount" min="0" max="100" value="1" 
                        placeholder="e.g., 2 (keep 1 out of every 2 records)">
             </div>
             <div class="control-group">
                 <label>Output Format</label>
                 <div class="format-group">
-                    <label class="format-option selected" id="formatTcxLabel">
-                        <input type="radio" name="outputFormat" id="formatTcx" value="tcx" checked>
+                    <label class="format-option" id="formatTcxLabel">
+                        <input type="radio" name="outputFormat" id="formatTcx" value="tcx">
                         📄 Reduced TCX
                     </label>
-                    <label class="format-option" id="formatCsvLabel">
-                        <input type="radio" name="outputFormat" id="formatCsv" value="csv">
+                    <label class="format-option selected" id="formatCsvLabel">
+                        <input type="radio" name="outputFormat" id="formatCsv" value="csv" checked>
                         📊 CSV (for LLM)
                     </label>
                 </div>
@@ -370,7 +370,7 @@
         // Numeric input validation
         function validateSkipCount(value) {
             const num = parseInt(value, 10);
-            if (isNaN(num) || num < 1 || num > 100) {
+            if (isNaN(num) || num < 0 || num > 100) {
                 return false;
             }
             return true;
@@ -504,7 +504,7 @@
 
             const skip = skipCount.value;
             if (!validateSkipCount(skip)) {
-                showStatus('Skip count must be between 1 and 100', 'error');
+                showStatus('Skip count must be between 0 and 100', 'error');
                 return;
             }
 
@@ -675,8 +675,8 @@
         // Input validation (only when focus is lost)
         skipCount.addEventListener('blur', (e) => {
             const value = parseInt(e.target.value, 10);
-            if (isNaN(value) || value < 1) {
-                e.target.value = 1;
+            if (isNaN(value) || value < 0) {
+                e.target.value = 0;
             } else if (value > 100) {
                 e.target.value = 100;
             }
