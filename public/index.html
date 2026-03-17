@@ -563,7 +563,7 @@
             }
 
             const rows = [];
-            rows.push('Time,Latitude,Longitude,AltitudeMeters,DistanceMeters,HeartRateBpm');
+            rows.push('Time,Latitude,Longitude,AltitudeMeters,DistanceMeters,HeartRateBpm,Speed,RunCadence');
 
             let keptCount = 0;
             let removedCount = 0;
@@ -580,6 +580,8 @@
                 const altEl = tp.querySelector('AltitudeMeters');
                 const distEl = tp.querySelector('DistanceMeters');
                 const hrEl = tp.querySelector('HeartRateBpm > Value');
+                const speedEl = tp.getElementsByTagNameNS('*', 'Speed')[0] || null;
+                const cadenceEl = tp.getElementsByTagNameNS('*', 'RunCadence')[0] || null;
 
                 const time = timeEl ? timeEl.textContent.trim() : '';
                 const lat = latEl ? latEl.textContent.trim() : '';
@@ -587,10 +589,12 @@
                 const alt = altEl ? altEl.textContent.trim() : '';
                 const dist = distEl ? distEl.textContent.trim() : '';
                 const hr = hrEl ? hrEl.textContent.trim() : '';
+                const speed = speedEl ? speedEl.textContent.trim() : '';
+                const cadence = cadenceEl ? cadenceEl.textContent.trim() : '';
 
                 // Escape CSV fields per RFC 4180: quote fields containing comma, quote, newline, or CR
                 const escape = v => (v.includes(',') || v.includes('"') || v.includes('\n') || v.includes('\r')) ? `"${v.replace(/"/g, '""')}"` : v;
-                rows.push([time, lat, lon, alt, dist, hr].map(escape).join(','));
+                rows.push([time, lat, lon, alt, dist, hr, speed, cadence].map(escape).join(','));
                 keptCount++;
             });
 
