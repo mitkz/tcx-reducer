@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2">
+<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"
+  xmlns:ns3="http://www.garmin.com/xmlschemas/ActivityExtension/v2">
   <Activities>
     <Activity Sport="Running">
       <Id>2024-01-01T10:00:00Z</Id>
@@ -18,6 +19,12 @@
             <HeartRateBpm>
               <Value>120</Value>
             </HeartRateBpm>
+            <Extensions>
+              <ns3:TPX>
+                <ns3:Speed>2.5</ns3:Speed>
+                <ns3:RunCadence>80</ns3:RunCadence>
+              </ns3:TPX>
+            </Extensions>
           </Trackpoint>
           <Trackpoint>
             <Time>2024-01-01T10:00:05Z</Time>
@@ -30,6 +37,12 @@
             <HeartRateBpm>
               <Value>122</Value>
             </HeartRateBpm>
+            <Extensions>
+              <ns3:TPX>
+                <ns3:Speed>2.8</ns3:Speed>
+                <ns3:RunCadence>82</ns3:RunCadence>
+              </ns3:TPX>
+            </Extensions>
           </Trackpoint>
           <Trackpoint>
             <Time>2024-01-01T10:00:10Z</Time>
@@ -42,6 +55,12 @@
             <HeartRateBpm>
               <Value>125</Value>
             </HeartRateBpm>
+            <Extensions>
+              <ns3:TPX>
+                <ns3:Speed>3.0</ns3:Speed>
+                <ns3:RunCadence>84</ns3:RunCadence>
+              </ns3:TPX>
+            </Extensions>
           </Trackpoint>
           <Trackpoint>
             <Time>2024-01-01T10:00:15Z</Time>
@@ -54,6 +73,12 @@
             <HeartRateBpm>
               <Value>128</Value>
             </HeartRateBpm>
+            <Extensions>
+              <ns3:TPX>
+                <ns3:Speed>3.1</ns3:Speed>
+                <ns3:RunCadence>85</ns3:RunCadence>
+              </ns3:TPX>
+            </Extensions>
           </Trackpoint>
           <Trackpoint>
             <Time>2024-01-01T10:00:20Z</Time>
@@ -66,6 +91,12 @@
             <HeartRateBpm>
               <Value>130</Value>
             </HeartRateBpm>
+            <Extensions>
+              <ns3:TPX>
+                <ns3:Speed>3.2</ns3:Speed>
+                <ns3:RunCadence>86</ns3:RunCadence>
+              </ns3:TPX>
+            </Extensions>
           </Trackpoint>
           <Trackpoint>
             <Time>2024-01-01T10:00:25Z</Time>
@@ -78,6 +109,12 @@
             <HeartRateBpm>
               <Value>132</Value>
             </HeartRateBpm>
+            <Extensions>
+              <ns3:TPX>
+                <ns3:Speed>3.3</ns3:Speed>
+                <ns3:RunCadence>87</ns3:RunCadence>
+              </ns3:TPX>
+            </Extensions>
           </Trackpoint>
           <Trackpoint>
             <Time>2024-01-01T10:00:30Z</Time>
@@ -90,6 +127,12 @@
             <HeartRateBpm>
               <Value>135</Value>
             </HeartRateBpm>
+            <Extensions>
+              <ns3:TPX>
+                <ns3:Speed>3.1</ns3:Speed>
+                <ns3:RunCadence>85</ns3:RunCadence>
+              </ns3:TPX>
+            </Extensions>
           </Trackpoint>
           <Trackpoint>
             <Time>2024-01-01T10:00:35Z</Time>
@@ -102,6 +145,12 @@
             <HeartRateBpm>
               <Value>138</Value>
             </HeartRateBpm>
+            <Extensions>
+              <ns3:TPX>
+                <ns3:Speed>3.0</ns3:Speed>
+                <ns3:RunCadence>84</ns3:RunCadence>
+              </ns3:TPX>
+            </Extensions>
           </Trackpoint>
           <Trackpoint>
             <Time>2024-01-01T10:00:40Z</Time>
@@ -114,6 +163,12 @@
             <HeartRateBpm>
               <Value>140</Value>
             </HeartRateBpm>
+            <Extensions>
+              <ns3:TPX>
+                <ns3:Speed>2.9</ns3:Speed>
+                <ns3:RunCadence>83</ns3:RunCadence>
+              </ns3:TPX>
+            </Extensions>
           </Trackpoint>
           <Trackpoint>
             <Time>2024-01-01T10:00:45Z</Time>
@@ -126,6 +181,12 @@
             <HeartRateBpm>
               <Value>142</Value>
             </HeartRateBpm>
+            <Extensions>
+              <ns3:TPX>
+                <ns3:Speed>2.8</ns3:Speed>
+                <ns3:RunCadence>82</ns3:RunCadence>
+              </ns3:TPX>
+            </Extensions>
           </Trackpoint>
         </Track>
       </Lap>
