@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tcx-reducer-v1';
+const CACHE_NAME = 'tcx-reducer-v2';
 const urlsToCache = [
   '/',
   '/index.html'
